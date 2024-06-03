@@ -41,7 +41,8 @@
 
             const blob = new Blob([bytes], { type: 'application/pdf' });
             const blobUrl = URL.createObjectURL(blob);
-            document.getElementById('pdfFrame').src = blobUrl;
+            const iframe = document.getElementById('pdfFrame');
+            iframe.src = blobUrl;
         }
 
         const base64String = getBase64FromUrl();
