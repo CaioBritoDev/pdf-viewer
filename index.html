@@ -31,7 +31,20 @@
             return urlParams.get('pdf');
         }
 
+        function isBase64(str) {
+            try {
+                return btoa(atob(str)) == str;
+            } catch (err) {
+                return false;
+            }
+        }
+
         function displayPdf(base64String) {
+            if (!isBase64(base64String)) {
+                alert('The provided string is not a valid base64 encoded PDF.');
+                return;
+            }
+
             const pdfData = atob(base64String);
             const pdfArray = new Uint8Array(pdfData.length);
             for (let i = 0; i < pdfData.length; i++) {
@@ -55,8 +68,9 @@
                     };
                     page.render(renderContext);
                 });
-            }, function(reason) {
-                console.error(reason);
+            }).catch(function(error) {
+                console.error(error);
+                alert('Error loading PDF: ' + error.message);
             });
         }
 
