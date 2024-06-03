@@ -13,16 +13,17 @@
             align-items: center;
             justify-content: center;
         }
-        iframe {
+        #pdfViewer {
             width: 100%;
             height: 100vh;
             border: none;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
 </head>
 <body>
     <h1>PDF Viewer</h1>
-    <iframe id="pdfFrame"></iframe>
+    <canvas id="pdfViewer"></canvas>
 
     <script>
         function getBase64FromUrl() {
@@ -31,18 +32,32 @@
         }
 
         function displayPdf(base64String) {
-            const binaryString = atob(base64String);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
+            const pdfData = atob(base64String);
+            const pdfArray = new Uint8Array(pdfData.length);
+            for (let i = 0; i < pdfData.length; i++) {
+                pdfArray[i] = pdfData.charCodeAt(i);
             }
 
-            const blob = new Blob([bytes], { type: 'application/pdf' });
-            const blobUrl = URL.createObjectURL(blob);
-            const iframe = document.getElementById('pdfFrame');
-            iframe.src = blobUrl;
+            const loadingTask = pdfjsLib.getDocument({data: pdfArray});
+            loadingTask.promise.then(function(pdf) {
+                pdf.getPage(1).then(function(page) {
+                    const scale = 1.5;
+                    const viewport = page.getViewport({scale: scale});
+
+                    const canvas = document.getElementById('pdfViewer');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    const renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    page.render(renderContext);
+                });
+            }, function(reason) {
+                console.error(reason);
+            });
         }
 
         const base64String = getBase64FromUrl();
